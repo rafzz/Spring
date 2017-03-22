@@ -1,11 +1,18 @@
 package hello;
 
-import java.security.Timestamp;
+
+import static org.assertj.core.api.Assertions.entry;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 
-public class PersonController extends Thread {
+public class PersonController extends Thread{
+	
+	public PersonController(){
+		this.start();
+		
+	}
+	
 
     private static final String templateFirstName = "Hello, %s";
     private static final String templateLastName = "%s";
@@ -26,6 +39,8 @@ public class PersonController extends Thread {
     
     
     private final AtomicLong counter = new AtomicLong();
+    
+    
     
     private void tokenValidation(String givenToken){
     	if(!token.equals(givenToken)) throw new RuntimeException();
@@ -130,9 +145,20 @@ public class PersonController extends Thread {
     
     
     //-----------------------------------------------------------------------
-    private HashMap<User,String> credentials = new HashMap<User,String>();
     
-    public String createUUID(){
+    
+    private static HashMap<User,Date> credentials = new HashMap<User,Date>();
+    
+    
+    public static HashMap<User, Date> getCredentials() {
+		return credentials;
+	}
+
+	public static void setCredentials(HashMap<User, Date> credentials) {
+		PersonController.credentials = credentials;
+	}
+
+	public String createUUID(){
     	String result = "";
     	Random random = new Random();
     	
@@ -145,47 +171,76 @@ public class PersonController extends Thread {
     	
     	result += "_"+timeStamp;
 
+
     	return result;
     }
+    
     
     @PostMapping
     public User login(@RequestBody User user){
     	
-    	this.start();
-    	credentials.put(user, createUUID());
+    	user.setUuid(createUUID());
+    	credentials.put(user, new Date());
     	
     	return user;
     }
     
     @GetMapping
-    public HashMap<User,String> getCredentialsMap(){
-    	return credentials;	
+    public String getCredentialsMap(){
+    	String result="";
+    	for(Map.Entry<User, Date> entry : credentials.entrySet()){
+    		
+    		result += "\n"+ entry.getKey().toString() +"  "+entry.getValue().toString();
+    	}
+    	return result;	
     }
-
+    
+    
 	@Override
 	public void run() {
-		super.run();
-		
-		for(String uuid : credentials.values()){
-			
-			String date = uuid.split("_")[1];
-			
-			String min = date.split(".")[4];
-			
-			//if(Integer.parseInt(min)+2 == )
-			
-			
+		while(this.isAlive()){
+
+			for(Iterator<Entry<User, Date>> iterator = credentials.entrySet().iterator(); iterator.hasNext(); ){
+				
+				Entry<User, Date> entry = iterator.next();
+				
+				Date upTime = (Date) entry.getValue().clone();
+				upTime.setMinutes(upTime.getMinutes()+2);
+				
+				//System.out.println(new Date()+"------------"+upTime+"---compare "+(upTime).compareTo(new Date()));
+				
+				if(upTime.compareTo(new Date())==0 || (upTime).compareTo(new Date())<1){
+					
+					iterator.remove();
+					
+				}
+				
+			}
 			
 			try {
 				sleep(700);
+				
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-             
-        } 
 		
+		}
+
 	}
+    
+    
+
+	
+		
+}
+	
+	
+	
+	
+	
+	
+	
+	
     
     
     
@@ -199,4 +254,4 @@ public class PersonController extends Thread {
     
     
     
-}
+
