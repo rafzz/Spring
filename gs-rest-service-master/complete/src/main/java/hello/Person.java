@@ -42,6 +42,13 @@ public class Person {
 		
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return firstName +" "+lastName;
+	}
+	
+	
 	
 	
 	

@@ -44,6 +44,15 @@ public class User {
 	public String toString() {
 		return "User [login=" + login +  "]";
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		
+		User user = (User) obj;
+		return this.login.equals(user.login) && this.password.equals(user.password);
+	}
+	
+	
 	
 	
 	
