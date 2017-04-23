@@ -9,9 +9,9 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
         
-        RestClient client = new RestClient();
         
-        client.test();
+        //System.out.println(System.currentTimeMillis()/30);
+
       
     }
 }
