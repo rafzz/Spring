@@ -1,25 +1,28 @@
-package hello;
+package controllers;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Map.Entry;
-
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import java.util.Random;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import classes.*;
+
 @RestController
+@RequestMapping("/user")
 public class UserController extends Thread{
 	
 	public UserController() {
@@ -27,10 +30,12 @@ public class UserController extends Thread{
 	}
 	
 	private static HashMap<User, Date> credentials = new HashMap<User, Date>();
-
-	@GetMapping("/secretMethod"/*+"/{login}"*/)
-	//@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public ResponseEntity secretMethod(@RequestParam(value="login") String login, 
+	
+	
+	@Deprecated
+	
+	@GetMapping("/secretMethod")
+	public ResponseEntity<String> secretMethod(@RequestParam(value="login") String login, 
 									   @RequestParam(value="password") String password){
 
 		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
@@ -44,20 +49,9 @@ public class UserController extends Thread{
 			}
 		}
 		return  ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESS DENIED!");
-		
-		
-		
 	}
-
-	public static HashMap<User, Date> getCredentials() {
-		return credentials;
-	}
-
-	public static void setCredentials(HashMap<User, Date> credentials) {
-		UserController.credentials = credentials;
-	}
-
-	public String createUUID() {
+	
+	private String createUUID() {
 		String result = "";
 		Random random = new Random();
 
@@ -71,24 +65,70 @@ public class UserController extends Thread{
 
 		return result;
 	}
-
-	@PostMapping
-	public ResponseEntity login(@RequestBody User user) {
-
-		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
-
-			if (entry.getKey().equals(user)) {
-				entry.setValue(new Date());
-				return ResponseEntity.status(HttpStatus.OK).body(user);
+	
+	private final String SIGN_UP_FORBIDDEN_MESAGE = "Already registered!";
+	private final String SIGN_UP_CREATED_MESAGE = "Succesfully registered!";
+	
+	@PostMapping("/signUp")
+	public ResponseEntity<String> signUp(@RequestBody User user) {
+		
+		//contains
+		for( User storedUser : credentials.keySet()){
+			if(storedUser.equals(user)){
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(SIGN_UP_FORBIDDEN_MESAGE);
 			}
 		}
+			
 
 		user.setUuid(createUUID());
-		credentials.put(user, new Date());
-		return ResponseEntity.status(HttpStatus.CREATED).body(user);
+		credentials.put(user, null);
+		return ResponseEntity.status(HttpStatus.CREATED).body(SIGN_UP_CREATED_MESAGE);
 	}
+	
+	
+	private final String SIGN_IN_OK_MESAGE = "Succesfully logged in!";
+	private final String SIGN_IN_FORBIDDEN_MESAGE = "Unable to log in!";
+	
+	@PostMapping("/signIn")
+	public ResponseEntity<String> signIn(@RequestBody User user) {
+		
+		
+		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
 
-	@GetMapping
+			if (entry.getKey().equals(user) && entry.getValue()==null) {
+				entry.setValue(new Date());
+				return ResponseEntity.status(HttpStatus.OK).body(SIGN_IN_OK_MESAGE);
+			}
+		}
+		
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(SIGN_IN_FORBIDDEN_MESAGE);
+		
+	}
+	
+	private final String SIGN_OUT_OK_MESAGE = "Succesfully logged out!";
+	private final String SIGN_OUT_FORBIDDEN_MESAGE = "No such user!";
+	private final String SIGN_OUT_NOT_ALLOWED_MESAGE = "Already logged out!";
+	
+	@PutMapping("/signOut")
+	public ResponseEntity<String> signOut(@RequestBody User user) {
+		
+		for(Entry<User, Date> entry : credentials.entrySet() ){
+			
+			if(entry.getKey().equals(user) && entry.getValue()==null){
+				entry.setValue(null);
+				return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(SIGN_OUT_NOT_ALLOWED_MESAGE);
+				
+			}else if(entry.getKey().equals(user)){
+				entry.setValue(null);
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(SIGN_OUT_OK_MESAGE);
+			}
+			
+		}
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(SIGN_OUT_FORBIDDEN_MESAGE);
+	}
+	
+	
+	@GetMapping("/getLoggedIn")
 	public String getCredentialsMap() {
 		String result = "";
 		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
@@ -103,8 +143,7 @@ public class UserController extends Thread{
 		}
 		return result;
 	}
-
-
+	
 	@Override
 	public void run() {
 		while (this.isAlive()) {
@@ -135,5 +174,8 @@ public class UserController extends Thread{
 		}
 
 	}
+	
+	
+	
 
 }
