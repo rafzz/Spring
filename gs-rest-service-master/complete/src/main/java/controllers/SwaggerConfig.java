@@ -31,7 +31,11 @@ public class SwaggerConfig {
       			.apiInfo(apiInfo());
 	}
 	
-	private Contact contact = new Contact("Rafzz","https://github.com/rafzz","rafzz@interia.eu");
+	private final String NAME = "Rafzz";
+	private final String URL = "https://github.com/rafzz";
+	private final String EMAIL = "rafzz@interia.eu";
+	
+	private Contact contact = new Contact(NAME, URL, EMAIL);
 	
 	private ApiInfo apiInfo() {
     		ApiInfo apiInfo = new ApiInfo(

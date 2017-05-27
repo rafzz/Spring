@@ -51,9 +51,6 @@ public class ProductController {
 		return productsList;
 	}
 
-
-
-
 	private boolean isAuthorized(User user){
 		
 		
@@ -68,7 +65,8 @@ public class ProductController {
 		
 	}
 	
-	
+	private final String OK_ADD_MESSAGE = "Added product!";
+	private final String UNAUTHORIZED_ADD_MESSAGE = "Unauthorized!";
 	
 	@PostMapping("/add")
     public ResponseEntity<String> add(@RequestBody RequestHolder holder) {
@@ -79,10 +77,10 @@ public class ProductController {
 			product.setId( (int) counter.incrementAndGet()); 
 			productsList.add(product);
 			
-			return ResponseEntity.status(HttpStatus.OK).body("Added product!");
+			return ResponseEntity.status(HttpStatus.OK).body(OK_ADD_MESSAGE);
 		}
 		
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized!");
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED_ADD_MESSAGE);
 		
         
     }
@@ -91,19 +89,15 @@ public class ProductController {
 	
 	@GetMapping("/show")
     public ResponseEntity<String> show() {
-		
-		//if(isAuthorized(user)){
-			
-			
 			
 			return ResponseEntity.status(HttpStatus.OK).body(productsList.toString());
-		//}
-		
-		//return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized!");
-		
-        
+
     }
 	
+	
+	private final String OK_REMOVE_MESSAGE = "Removed product: ";
+	private final String BAD_REQUEST_PRODUCT_MESSAGE = "No such product!";
+	private final String UNAUTHORIZED_REMOVE_MESSAGE = "Unauthorized!";
 	
 	@PutMapping("/remove")
     public ResponseEntity<String> remove(@RequestBody User user, @RequestParam(value="id", required=true) int id) {
@@ -114,16 +108,14 @@ public class ProductController {
 				
 				if(product.getId()==id){
 					productsList.remove(product);
-					return ResponseEntity.status(HttpStatus.OK).body(product.toString());
+					return ResponseEntity.status(HttpStatus.OK).body(OK_REMOVE_MESSAGE+product.toString());
 					
 				}
-				
 			}
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No such product!");
-			
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BAD_REQUEST_PRODUCT_MESSAGE);
 
 		}else{
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized!");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED_REMOVE_MESSAGE);
 		}
 		
 		

@@ -85,15 +85,12 @@ public class UserController extends Thread{
 			}
 		}
 			
-
 		user.setUuid(createUUID());
 		credentials.put(user, null);
 		return ResponseEntity.status(HttpStatus.CREATED).body(SIGN_UP_CREATED_MESAGE);
 	}
 	
 	
-	private final String SIGN_IN_OK_MESAGE = "Succesfully logged in!";
-	private final String SIGN_IN_FORBIDDEN_MESAGE = "Unable to log in!";
 	
 	@PostMapping("/signIn")
 	public ResponseEntity<User> signIn(@RequestBody User user) {
