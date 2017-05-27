@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,37 +20,42 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import classes.*;
+import classes.User;
+import client.BasicClient;
+import controllers.*;
 
 @RestController
 @RequestMapping("/user")
 public class UserController extends Thread{
 	
+	private static Logger log = Logger.getLogger(UserController.class);
+	
+	private static HashMap<User, Date> credentials = new HashMap<User, Date>(){
+
+		@Override
+		public boolean containsKey(Object key) {
+			
+			User user = (User) key;
+			for(User  u : this.keySet()){
+				
+				if(user.isLogged(u)){
+					return true;
+				}
+			};
+			return false;
+		}
+		
+	};
+	
+	public static HashMap<User, Date> getCredentials() {
+		return credentials;
+	}
+
 	public UserController() {
 		this.start();
 	}
 	
-	private static HashMap<User, Date> credentials = new HashMap<User, Date>();
-	
-	
-	@Deprecated
-	
-	@GetMapping("/secretMethod")
-	public ResponseEntity<String> secretMethod(@RequestParam(value="login") String login, 
-									   @RequestParam(value="password") String password){
-
-		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
-			
-			if(entry.getKey().getLogin().equals(login) && 
-				entry.getKey().getPassword().equals(password) && 
-				entry.getValue()!=null){
-
-				return  ResponseEntity.ok("TOP SECRET: luke skywalker is darth vader's son!");
-				
-			}
-		}
-		return  ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESS DENIED!");
-	}
+	private final String DATE_FORMAT = "yyyy.MM.dd.HH.mm.ss";
 	
 	private String createUUID() {
 		String result = "";
@@ -59,7 +65,7 @@ public class UserController extends Thread{
 			result += random.nextInt(9);
 		}
 
-		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(System.currentTimeMillis());
+		String timeStamp = new SimpleDateFormat(DATE_FORMAT).format(System.currentTimeMillis());
 
 		result += "_" + timeStamp;
 
@@ -90,18 +96,18 @@ public class UserController extends Thread{
 	private final String SIGN_IN_FORBIDDEN_MESAGE = "Unable to log in!";
 	
 	@PostMapping("/signIn")
-	public ResponseEntity<String> signIn(@RequestBody User user) {
+	public ResponseEntity<User> signIn(@RequestBody User user) {
 		
 		
 		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
 
 			if (entry.getKey().equals(user) && entry.getValue()==null) {
 				entry.setValue(new Date());
-				return ResponseEntity.status(HttpStatus.OK).body(SIGN_IN_OK_MESAGE);
+				return ResponseEntity.status(HttpStatus.OK).body(entry.getKey());
 			}
 		}
 		
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(SIGN_IN_FORBIDDEN_MESAGE);
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
 		
 	}
 	
@@ -128,14 +134,14 @@ public class UserController extends Thread{
 	}
 	
 	
-	@GetMapping("/getLoggedIn")
+	@GetMapping("/getUsersList")
 	public String getCredentialsMap() {
 		String result = "";
 		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
 
 			if (!(entry.getValue() == null)) {
 
-				result += "\n" + entry.getKey().toString() + "  " + entry.getValue().toString();
+				result += "\n" + entry.getKey().toString() + "  Sign in time:  " + entry.getValue().toString();
 			} else {
 				result += "\n" + entry.getKey().toString() + "  " + entry.getValue();
 			}
@@ -143,6 +149,9 @@ public class UserController extends Thread{
 		}
 		return result;
 	}
+	
+	private final int SLEEP_DURATION = 700;	//msec
+	private final int SESSION_DURATION = 2; //min
 	
 	@Override
 	public void run() {
@@ -155,7 +164,7 @@ public class UserController extends Thread{
 				if (entry.getValue() != null) {
 					
 					Date upTime = (Date) entry.getValue().clone();
-					upTime.setMinutes(upTime.getMinutes() + 2);
+					upTime.setMinutes(upTime.getMinutes() + SESSION_DURATION);
 
 					if (upTime.compareTo(new Date()) == 0 || (upTime).compareTo(new Date()) < 1) {
 
@@ -165,10 +174,11 @@ public class UserController extends Thread{
 				}
 			}
 			try {
-				sleep(700);
+				sleep(SLEEP_DURATION);
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				log.debug(e.getMessage());
 			}
 
 		}
