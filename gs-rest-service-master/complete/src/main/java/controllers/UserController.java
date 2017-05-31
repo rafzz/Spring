@@ -72,6 +72,20 @@ public class UserController extends Thread{
 		return result;
 	}
 	
+	private boolean isAuthorized(User user){
+		
+		
+		for(Map.Entry<User, Date> entry  : credentials.entrySet()){
+			
+			if(entry.getKey().isLogged(user) && entry.getValue()!=null){
+				return true;
+			}
+		}
+		
+		return false;
+		
+	}
+	
 	private final String SIGN_UP_FORBIDDEN_MESAGE = "Already registered!";
 	private final String SIGN_UP_CREATED_MESAGE = "Succesfully registered!";
 	
@@ -104,47 +118,44 @@ public class UserController extends Thread{
 			}
 		}
 		
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new User());
 		
 	}
 	
 	private final String SIGN_OUT_OK_MESAGE = "Succesfully logged out!";
-	private final String SIGN_OUT_FORBIDDEN_MESAGE = "No such user!";
-	private final String SIGN_OUT_NOT_ALLOWED_MESAGE = "Already logged out!";
+
+	private final String UNAUTHORIZED_ADD_MESSAGE = "Unauthorized!";
 	
 	@PutMapping("/signOut")
 	public ResponseEntity<String> signOut(@RequestBody User user) {
 		
-		for(Entry<User, Date> entry : credentials.entrySet() ){
-			
-			if(entry.getKey().equals(user) && entry.getValue()==null){
-				entry.setValue(null);
-				return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(SIGN_OUT_NOT_ALLOWED_MESAGE);
-				
-			}else if(entry.getKey().equals(user)){
-				entry.setValue(null);
-				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(SIGN_OUT_OK_MESAGE);
+		if(isAuthorized(user)){
+			for (Entry<User, Date> entry : credentials.entrySet()) {
+
+				if (entry.getKey().equals(user)) {
+					entry.setValue(null);
+					return ResponseEntity.status(HttpStatus.OK).body(SIGN_OUT_OK_MESAGE);
+				}
+
 			}
-			
 		}
-		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(SIGN_OUT_FORBIDDEN_MESAGE);
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED_ADD_MESSAGE);
 	}
 	
 	
 	@GetMapping("/getUsersList")
-	public String getCredentialsMap() {
+	public ResponseEntity<String> getCredentialsMap() {
 		String result = "";
 		for (Map.Entry<User, Date> entry : credentials.entrySet()) {
 
 			if (!(entry.getValue() == null)) {
 
-				result += "\n" + entry.getKey().toString() + "  Sign in time:  " + entry.getValue().toString();
+				result += "\n" + entry.getKey().toString() + entry.getValue().toString();
 			} else {
 				result += "\n" + entry.getKey().toString() + "  " + entry.getValue();
 			}
-
 		}
-		return result;
+		return ResponseEntity.status(HttpStatus.OK).body(result);
 	}
 	
 	private final int SLEEP_DURATION = 700;	//msec

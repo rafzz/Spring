@@ -2,19 +2,13 @@ package controllers;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
-import java.security.KeyStore.Entry;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.ws.rs.PathParam;
-import javax.ws.rs.client.Entity;
-
-import org.jboss.logging.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -95,7 +89,7 @@ public class ProductController {
     }
 	
 	
-	private final String OK_REMOVE_MESSAGE = "Removed product: ";
+	private final String OK_REMOVE_MESSAGE = "Removed product!";
 	private final String BAD_REQUEST_PRODUCT_MESSAGE = "No such product!";
 	private final String UNAUTHORIZED_REMOVE_MESSAGE = "Unauthorized!";
 	
@@ -108,7 +102,7 @@ public class ProductController {
 				
 				if(product.getId()==id){
 					productsList.remove(product);
-					return ResponseEntity.status(HttpStatus.OK).body(OK_REMOVE_MESSAGE+product.toString());
+					return ResponseEntity.status(HttpStatus.OK).body(OK_REMOVE_MESSAGE);
 					
 				}
 			}

@@ -29,7 +29,10 @@ public class User {
 	}
 
 	public User() {
-
+		this.login = "";
+		this.password = "";
+		this.uuid = "";
+		
 	}
 
 	public String getLogin() {
@@ -57,6 +60,8 @@ public class User {
 	public boolean equals(Object obj) {
 
 		User user = (User) obj;
+
+		
 		return this.login.equals(user.login) && this.password.equals(user.password);
 	}
 

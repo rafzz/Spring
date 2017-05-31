@@ -8,13 +8,10 @@ import javax.ws.rs.core.Response;
 
 import org.apache.log4j.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import classes.Product;
 import classes.RequestHolder;
 import classes.User;
-import controllers.ProductController;
+
 
 public class BasicClient {
 
@@ -72,7 +69,7 @@ public class BasicClient {
 
 		Response response = client.target(MAIN_URL+"/user/signOut")
 				.request(MediaType.APPLICATION_JSON)
-				.put(Entity.entity(new User(LOGIN, PASSWORD), 
+				.put(Entity.entity(new User(LOGIN, PASSWORD, UUID), 
 						MediaType.APPLICATION_JSON_TYPE), Response.class);
 
 		return response.readEntity(String.class);
